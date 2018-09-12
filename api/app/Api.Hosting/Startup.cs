@@ -1,20 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Sockets;
-using System.Threading.Tasks;
-using Api.Hosting.Consul;
+﻿using Api.Hosting.Consul;
+using Api.Hosting.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using NetCoreStack.Proxy;
 using Swashbuckle.AspNetCore.Swagger;
+using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Net.Sockets;
+using System.Threading.Tasks;
 
 namespace Api.Hosting
 {
@@ -38,6 +35,9 @@ namespace Api.Hosting
             });
 
             services.Configure<DbSettings>(Configuration.GetSection(nameof(DbSettings)));
+
+            services.AddSingleton<IMongoDatabaseAccessor, DefaultMongoDatabaseAccessor>();
+            services.AddSingleton<LookupContext>();
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
