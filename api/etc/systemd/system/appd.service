@@ -1,0 +1,16 @@
+[Unit]
+Description=Api hosting
+
+[Service]
+WorkingDirectory=/home/app
+ExecStart=/usr/bin/dotnet /home/app/Api.Hosting.dll
+ExecStop=/bin/kill -INT $MAINPID
+Restart=always
+RestartSec=10
+SyslogIdentifier=ApiHosting
+User=ubuntu
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
+
+[Install]
+WantedBy=multi-user.target

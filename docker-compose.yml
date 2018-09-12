@@ -1,0 +1,38 @@
+version: "3"
+services:
+  api01:
+    container_name: api01
+    image: api-lab
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+    ports:
+      - "5001:80"
+  api02:
+    container_name: api02
+    image: api-lab
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+    ports:
+      - "5002:80"
+  api03:
+    container_name: api03
+    image: api-lab
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+    ports:
+      - "5003:80"
+  consul:
+    container_name: consul
+    image: consul:latest
+    ports:
+      - "8500:8500"
+  mongo:
+    container_name: mongo
+    image: mongo-lab
+    ports:
+      - "27017:27017"
+  ansible:
+    container_name: ansible
+    image: ansible-lab
+    stdin_open: true
+    tty: true

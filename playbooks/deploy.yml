@@ -1,0 +1,20 @@
+---
+  - hosts: api
+    tasks: 
+      - name: Stop appd service
+        service: name=appd state=stopped
+      - name: Extract app into home directory
+        unarchive: 
+          src: app.tar.gz
+          dest: /home/app
+      - name: Stop nginx service
+        service: name=nginx state=stopped
+      - name: Ensure appd service started
+        service: name=appd state=started
+        notify:
+          - Start nginx
+    handlers: 
+      - name: Start nginx
+        command: service nginx restart
+        args:
+          warn: false

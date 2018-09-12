@@ -1,0 +1,6 @@
+.DS_Store
+bin/
+obj/
+
+AnsibleLabKey
+AnsibleLabKey.pub

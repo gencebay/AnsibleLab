@@ -1,0 +1,25 @@
+ssh-keygen -t rsa -b 1024 -C "AnsibleLabKey"
+
+docker build -t ansible-lab -f ansible/Dockerfile .
+
+docker build -t api-lab -f api/Dockerfile .
+
+docker build -t mongo-lab -f db/Dockerfile .
+
+docker stop $(docker ps -aq)
+
+docker cp playbooks ansible:/home/
+
+ansible all -m ping -i ansible_hosts
+
+ansible-playbook app.yml -i ansible_hosts
+
+ansible-playbook deploy.yml -i ansible_hosts
+
+dotnet publish -c Release -o bin/hosting api/app/Api.Hosting/Api.Hosting.csproj
+
+tar -C $(pwd)/api/app/Api.Hosting/bin/hosting/ -zcvf playbooks/app.tar.gz .
+
+mongodump --db MusicStore --archive=db/musicstore.archive
+
+mongorestore --db MusicStore --archive=db/musicstore.archive

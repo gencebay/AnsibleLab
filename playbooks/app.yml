@@ -1,0 +1,81 @@
+---
+  - hosts: db
+    tasks:
+      - name: Install mongo-init.d service script
+        copy: src=db/mongo-init.d dest=/etc/init.d/mongod mode=0755
+      - name: Copy default mongodb config file
+        copy: src=/etc/mongod.conf.orig dest=/etc/mongod.conf remote_src=yes
+      - name: Mongo config bind all ip
+        replace:
+          path: /etc/mongod.conf
+          regexp: '[^-\s]*bindIp:.*'
+          replace: 'bindIpAll: true'
+      - name: Ensure db path created
+        file:
+          path: /var/lib/mongodb
+          state: directory
+          owner: mongodb
+          group: mongodb
+          mode: 0755
+      - name: Ensure log file created
+        file:
+          path: /var/log/mongodb/mongod.log
+          state: touch
+          owner: mongodb
+          group: mongodb
+          mode: 0755
+      - name: Ensure mongod service enabled
+        service: name=mongod enabled=yes
+      - name: Ensure mongod service started
+        service: name=mongod state=started
+      - name: Restore initial database
+        command: mongorestore --db MusicStore --archive=/home/musicstore.archive
+  - hosts: api
+    tasks: 
+      - name: Download the dep file
+        get_url: 
+          url: https://packages.microsoft.com/config/ubuntu/16.04/packages-microsoft-prod.deb
+          dest: /home/packages-microsoft-prod.deb
+      - name: Register the key, register the product repository, and install required dependencies
+        command: dpkg -i /home/packages-microsoft-prod.deb
+      - name: Install apt-transport-https
+        apt: name=apt-transport-https state=present
+      - name: Install aspnetcore-runtime-2.1
+        apt: name=aspnetcore-runtime-2.1 state=present update_cache=yes
+      - name: Install nginx
+        apt: name=nginx state=present update_cache=yes
+      - name: Ensure nginx enabled
+        service: name=nginx enabled=yes
+      - name: Copy the nginx default config file
+        copy: src=nginx/nginx-conf.orig dest=/etc/nginx/nginx.conf
+      - name: Clear default site config
+        file: path=/etc/nginx/sites-enabled/default state=absent
+      - name: Copy site config
+        copy: src=nginx/sites-available/netcorestack.com dest=/etc/nginx/sites-available/
+      - name: Ensure site enabled
+        file: src=/etc/nginx/sites-available/netcorestack.com dest=/etc/nginx/sites-enabled/netcorestack.com state=link
+      - name: Create app directory if it doesn't exist
+        file: 
+          path: /home/app
+          state: directory
+      - name: Extract app into home directory
+        unarchive: 
+          src: app.tar.gz
+          dest: /home/app
+      - name: Install app-init.d service script
+        copy: src=app-init.d dest=/etc/init.d/appd mode=0755
+      - name: Create service pid file parent directory if it doesn't exist
+        file: 
+          path: /run/dotnet
+          state: directory
+      - name: Ensure appd service enabled
+        service: name=appd enabled=yes
+      - name: Ensure appd service started
+        service: name=appd state=started
+        notify:
+          - Start nginx
+    handlers: 
+      - name: Start nginx
+        command: service nginx restart
+        args:
+          warn: false
